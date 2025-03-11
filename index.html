@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sancashop</title>
+    
+    <!-- Estilos -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+        }
+        .pdv-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .pdv-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .pdv-btn.selected {
+            background-color: #2196f3;
+            color: white;
+            border-color: #2196f3;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-primary {
+            background-color: #2196f3;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        .grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .info-list {
+            margin-left: 20px;
+            padding-left: 0;
+        }
+        .info-list li {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2196f3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .upload-container {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+        }
+        .upload-box {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .file-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .grid-cols-3, .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Área de upload -->
+    <div id="upload-area" class="upload-container">
+        <h1 class="title">Dashboard Sancashop - Carregamento de Dados</h1>
+        <p>Para visualizar o dashboard, carregue os arquivos Excel necessários.</p>
+        
+        <div class="upload-box">
+            <label class="file-label">Arquivo de Transações</label>
+            <p>Selecione o arquivo "transacoes_sancashop.xlsx"</p>
+            <input type="file" id="transacoes-file" accept=".xlsx" class="file-input">
+            <div id="transacoes-status" class="status">Pendente</div>
+        </div>
+        
+        <div class="upload-box">
+            <label class="file-label">Arquivo de Apartamentos</label>
+            <p>Selecione o arquivo "Sancashop_Apts_por_Condo.xlsx"</p>
+            <input type="file" id="apts-file" accept=".xlsx" class="file-input">
+            <div id="apts-status" class="status">Pendente</div>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-title">Instruções:</div>
+            <ul class="info-list">
+                <li>Carregue os dois arquivos Excel necessários.</li>
+                <li>Os dados são processados localmente e não são enviados para nenhum servidor.</li>
+                <li>Para melhor experiência, use Chrome, Firefox ou Edge.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Área de carregamento -->
+    <div id="loading-area" class="loading hidden">
+        <div class="spinner"></div>
+        <div class="title">Processando dados...</div>
+        <div>Isso pode levar alguns segundos.</div>
+    </div>
+    
+    <!-- Dashboard -->
+    <div id="dashboard-area" class="container hidden">
+        <div class="header">
+            <h1 class="title">Dashboard Sancashop - Análise de Faturamento</h1>
+        </div>
+        
+        <!-- Seletor de PDVs -->
+        <div class="card">
+            <div class="subtitle">Selecione os PDVs:</div>
+            <div>
+                <button id="select-all-btn" class="btn btn-primary">Selecionar Todos</button>
+                <button id="clear-selection-btn" class="btn btn-secondary">Limpar Seleção</button>
+            </div>
+            <div id="pdv-selector" class="pdv-selector"></div>
+            <div id="pdv-counter" class="status"></div>
+        </div>
+        
+        <!-- Parte 1: Evolução mensal do faturamento -->
+        <div class="section-title">Parte 1: Evolução Mensal do Faturamento por Dia</div>
+        
+        <div class="grid grid-cols-3">
+            <!-- Gráfico 1: Faturamento por Dia Útil -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Dia Útil</div>
+                <div class="chart-container">
+                    <canvas id="chart-dia-util"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 2: Faturamento por Fim de Semana -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Fim de Semana/Feriado</div>
+                <div class="chart-container">
+                    <canvas id="chart-fim-semana"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 3: Comparativo -->
+            <div class="card">
+                <div class="subtitle">Comparativo: Dia Útil vs. Fim de Semana</div>
+                <div class="chart-container">
+                    <canvas id="chart-comparativo"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Parte 2: Evolução por PDV -->
+        <div class="section-title">Parte 2: Evolução do Faturamento por PDV</div>
+        
+        <div class="grid grid-cols-2">
+            <!-- Gráfico 4: Faturamento por Dia Útil por PDV -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Dia Útil por PDV</div>
+                <div class="chart-container">
+                    <canvas id="chart-dia-util-pdv"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 5: Faturamento por Fim de Semana por PDV -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Fim de Semana por PDV</div>
+                <div class="chart-container">
+                    <canvas id="chart-fim-semana-pdv"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2">
+            <!-- Gráfico 6: Faturamento por Apartamento por Dia Útil -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Apartamento por PDV por Dia Útil</div>
+                <div class="chart-container">
+                    <canvas id="chart-apt-dia-util"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 7: Faturamento por Apartamento por Fim de Semana -->
+            <div class="card">
+                <div class="subtitle">Faturamento por Apartamento por PDV por Fim de Semana</div>
+                <div class="chart-container">
+                    <canvas id="chart-apt-fim-semana"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informações e Legenda -->
+        <div class="info-box">
+            <div class="info-title">Notas:</div>
+            <ul class="info-list">
+                <li>Os valores para Fevereiro/2025 foram ajustados para considerar apenas até o dia 25.</li>
+                <li>Faturamento por dia: valores médios diários considerando apenas os dias úteis ou fins de semana no mês.</li>
+                <li>Faturamento por apartamento por dia: valor total mensal dividido pelo número de apartamentos e depois pelo número de dias (úteis ou de fim de semana) no mês.</li>
+                <li>Selecione os PDVs de interesse clicando nos botões acima. Use "Selecionar Todos" para visualizar todos os PDVs ou "Limpar Seleção" para desmarcar todos.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Script principal -->
+    <script>
+        // Variáveis globais
+        let transacoesData = null;
+        let aptsData = null;
+        let dadosProcessados = [];
+        let pdvs = [];
+        let pdvsSelecionados = [];
+        let charts = {};
+        
+        // Cores para os gráficos
+        const colors = [
+            'rgb(54, 162, 235)',
+            'rgb(75, 192, 192)',
+            'rgb(255, 159, 64)',
+            'rgb(153, 102, 255)',
+            'rgb(255, 99, 132)',
+            'rgb(255, 205, 86)'
+        ];
+        
+        // Inicializar ao carregar o documento
+        document.addEventListener('DOMContentLoaded', inicializar);
+        
+        function inicializar() {
+            // Configurar event listeners para upload de arquivos
+            document.getElementById('transacoes-file').addEventListener('change', handleTransacoesUpload);
+            document.getElementById('apts-file').addEventListener('change', handleAptsUpload);
+            
+            // Configurar eventos dos botões de seleção de PDVs
+            document.getElementById('select-all-btn').addEventListener('click', selecionarTodosPDVs);
+            document.getElementById('clear-selection-btn').addEventListener('click', limparSelecaoPDVs);
+        }
+        
+        // Funções para upload de arquivos
+        function handleTransacoesUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    transacoesData = data;
+                    document.getElementById('transacoes-status').textContent = 'Carregado ✓';
+                    document.getElementById('transacoes-status').style.color = 'green';
+                    checkFilesAndProcess();
+                } catch (error) {
+                    document.getElementById('transacoes-status').textContent = 'Erro ao carregar arquivo';
+                    document.getElementById('transacoes-status').style.color = 'red';
+                    console.error('Erro ao processar arquivo de transações:', error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function handleAptsUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    aptsData = data;
+                    document.getElementById('apts-status').textContent = 'Carregado ✓';
+                    document.getElementById('apts-status').style.color = 'green';
+                    checkFilesAndProcess();
+                } catch (error) {
+                    document.getElementById('apts-status').textContent = 'Erro ao carregar arquivo';
+                    document.getElementById('apts-status').style.color = 'red';
+                    console.error('Erro ao processar arquivo de apartamentos:', error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function checkFilesAndProcess() {
+            if (transacoesData && aptsData) {
+                document.getElementById('upload-area').classList.add('hidden');
+                document.getElementById('loading-area').classList.remove('hidden');
+                
+                // Processamento assíncrono para permitir que a UI atualize
+                setTimeout(processarDados, 100);
+            }
+        }
+        
+        // Processamento de dados
+        async function processarDados() {
+            try {
+                // Processar arquivo de transações
+                const wbTransacoes = XLSX.read(transacoesData, { cellDates: true });
+                const sheetTransacoes = wbTransacoes.Sheets[wbTransacoes.SheetNames[0]];
+                const transacoes = XLSX.utils.sheet_to_json(sheetTransacoes);
+                
+                // Processar arquivo de apartamentos
+                const wbApts = XLSX.read(aptsData, { cellDates: true });
+                const sheetApts = wbApts.Sheets[wbApts.SheetNames[0]];
+                const dadosApts = XLSX.utils.sheet_to_json(sheetApts);
+                
+                // Criar mapeamento de condomínios para número de apartamentos
+                const mapaCondo = {};
+                dadosApts.forEach(item => {
+                    const totalApts = 
+                        (parseInt(item.NumeroQuartos_1 || 0)) +
+                        (parseInt(item.NumeroQuartos_2 || 0)) +
+                        (parseInt(item.NumeroQuartos_3 || 0)) +
+                        (parseInt(item.NumeroQuartos_4 || 0)) +
+                        (parseInt(item.NumeroQuartos_5 || 0));
+                    
+                    const nomeNormalizado = item.CodigoLoja.trim();
+                    mapaCondo[nomeNormalizado] = totalApts;
+                });
+                
+                // Extrair todos PDVs únicos
+                pdvs = [...new Set(transacoes.map(trans => trans.Local))].sort();
+                
+                // Selecionar os 5 primeiros PDVs por padrão
+                pdvsSelecionados = pdvs.slice(0, 5);
+                
+                // Processar transações
+                const transacoesProcessadas = transacoes.map(trans => {
+                    let dataObj;
+                    
+                    if (typeof trans.Datahora === 'string') {
+                        dataObj = new Date(trans.Datahora);
+                    } else if (trans.Datahora instanceof Date) {
+                        dataObj = trans.Datahora;
+                    } else {
+                        dataObj = new Date(); // Fallback
+                    }
+                    
+                    const diaDaSemana = dataObj.getDay(); // 0-6
+                    const ehFimDeSemana = diaDaSemana === 0 || diaDaSemana === 6;
+                    
+                    const ano = dataObj.getFullYear();
+                    const mes = dataObj.getMonth() + 1; // 1-12
+                    const chaveAnoMes = `${ano}-${mes.toString().padStart(2, '0')}`;
+                    const nomeMes = obterNomeMes(mes);
+                    
+                    return {
+                        ...trans,
+                        dataObj,
+                        diaDaSemana,
+                        ehFimDeSemana,
+                        ano,
+                        mes,
+                        chaveAnoMes,
+                        nomeMes,
+                        valorVenda: parseFloat(trans.PrecoVenda) || 0
+                    };
+                });
+                
+                // Agrupar transações por PDV, ano-mês e tipo de dia (útil ou fim de semana)
+                const agrupadoPorPDVMesTipoDia = _.groupBy(transacoesProcessadas, trans => 
+                    `${trans.Local}|${trans.chaveAnoMes}|${trans.ehFimDeSemana ? 'fds' : 'util'}`
+                );
+                
+                // Calcular totais
+                const dadosAgrupados = [];
+                
+                Object.entries(agrupadoPorPDVMesTipoDia).forEach(([chave, grupo]) => {
+                    const [pdv, anoMes, tipoDia] = chave.split('|');
+                    const [ano, mes] = anoMes.split('-').map(Number);
+                    const nomeMes = obterNomeMes(mes);
+                    const mesPeriodo = `${nomeMes}/${ano}`;
+                    
+                    // Somar valores das transações
+                    const valorTotal = _.sumBy(grupo, item => item.valorVenda);
+                    const qtdTransacoes = grupo.length;
+                    
+                    // Encontrar o condomínio correspondente no mapa
+                    let numApartamentos = 0;
+                    Object.entries(mapaCondo).forEach(([condoNome, numApts]) => {
+                        if (pdv.includes(condoNome) || condoNome.includes(pdv)) {
+                            numApartamentos = numApts;
+                        }
+                    });
+                    
+                    // Se não encontrou match exato, tentar match parcial
+                    if (numApartamentos === 0) {
+                        const pdvLower = pdv.toLowerCase();
+                        const matchParcial = Object.keys(mapaCondo).find(condo => 
+                            pdvLower.includes(condo.toLowerCase()) || 
+                            condo.toLowerCase().includes(pdvLower)
+                        );
+                        
+                        if (matchParcial) {
+                            numApartamentos = mapaCondo[matchParcial];
+                        }
+                    }
+                    
+                    // Verificar se é fevereiro de 2025 para ajuste
+                    let diasNoMes;
+                    if (ano === 2025 && mes === 2) {
+                        // Dados até dia 25
+                        diasNoMes = 25;
+                    } else {
+                        // Número total de dias no mês
+                        diasNoMes = new Date(ano, mes, 0).getDate();
+                    }
+                    
+                    // Contar dias úteis e fins de semana no mês
+                    let diasUteis = 0;
+                    let diasFDS = 0;
+                    
+                    for (let dia = 1; dia <= diasNoMes; dia++) {
+                        const data = new Date(ano, mes - 1, dia);
+                        const diaSemana = data.getDay();
+                        if (diaSemana === 0 || diaSemana === 6) {
+                            diasFDS++;
+                        } else {
+                            diasUteis++;
+                        }
+                    }
+                    
+                    // Calcular valor por dia
+                    const diasNoTipo = tipoDia === 'util' ? diasUteis : diasFDS;
+                    const valorPorDia = diasNoTipo > 0 ? valorTotal / diasNoTipo : 0;
+                    
+                    // Calcular valor por apartamento
+                    const valorPorApt = numApartamentos > 0 ? valorTotal / numApartamentos : 0;
+                    
+                    dadosAgrupados.push({
+                        pdv,
+                        anoMes,
+                        ano,
+                        mes,
+                        nomeMes,
+                        mesPeriodo,
+                        tipoDia: tipoDia === 'util' ? 'Dia Útil' : 'Fim de Semana/Feriado',
+                        valorTotal,
+                        qtdTransacoes,
+                        numApartamentos,
+                        valorPorDia,
+                        valorPorApt,
+                        diasUteis,
+                        diasFDS,
+                        ordem: ano * 100 + mes // Para ordenação
+                    });
+                });
+                
+                // Ordenar por data
+                dadosProcessados = _.sortBy(dadosAgrupados, ['ordem', 'pdv', 'tipoDia']);
+                
+                // Esconder área de carregamento e mostrar dashboard
+                document.getElementById('loading-area').classList.add('hidden');
+                document.getElementById('dashboard-area').classList.remove('hidden');
+                
+                // Renderizar a interface
+                renderizarDashboard();
+                
+            } catch (error) {
+                console.error('Erro ao processar dados:', error);
+                document.getElementById('loading-area').classList.add('hidden');
+                alert('Ocorreu um erro ao processar os dados. Verifique o console para mais detalhes.');
+            }
+        }
+        
+        // Funções para renderizar a interface
+        function renderizarDashboard() {
+            // Renderizar seletor de PDVs
+            renderizarSeletorPDVs();
+            
+            // Renderizar todos os gráficos
+            atualizarGraficos();
+        }
+        
+        function renderizarSeletorPDVs() {
+            const container = document.getElementById('pdv-selector');
+            container.innerHTML = '';
+            
+            pdvs.forEach(pdv => {
+                const button = document.createElement('button');
+                button.textContent = pdv;
+                button.className = 'pdv-btn';
+                if (pdvsSelecionados.includes(pdv)) {
+                    button.classList.add('selected');
+                }
+                button.addEventListener('click', () => togglePDV(pdv));
+                container.appendChild(button);
+            });
+            
+            atualizarContadorPDVs();
+        }
+        
+        function togglePDV(pdv) {
+            if (pdvsSelecionados.includes(pdv)) {
+                pdvsSelecionados = pdvsSelecionados.filter(p => p !== pdv);
+            } else {
+                pdvsSelecionados.push(pdv);
+            }
+            
+            renderizarSeletorPDVs();
+            atualizarGraficos();
+        }
+        
+        function selecionarTodosPDVs() {
+            pdvsSelecionados = [...pdvs];
+            renderizarSeletorPDVs();
+            atualizarGraficos();
+        }
+        
+        function limparSelecaoPDVs() {
+            pdvsSelecionados = [];
+            renderizarSeletorPDVs();
+            atualizarGraficos();
+        }
+        
+        function atualizarContadorPDVs() {
+            const counter = document.getElementById('pdv-counter');
+            counter.textContent = `${pdvsSelecionados.length} PDV(s) selecionado(s) de ${pdvs.length}`;
+        }
+        
+        // Funções para atualizar os gráficos
+        function atualizarGraficos() {
+            // Filtrar dados com base nos PDVs selecionados
+            const dadosFiltrados = dadosProcessados.filter(d => pdvsSelecionados.includes(d.pdv));
+            
+            // Preparar dados para os gráficos
+            const dadosGrafico1 = prepararDadosGrafico1(dadosFiltrados);
+            const dadosGrafico2 = prepararDadosGrafico2(dadosFiltrados);
+            
+            // Calcular dados para o gráfico de dias úteis
+            const dadosDiasUteis = dadosGrafico1.filter(d => d.tipoDia === 'Dia Útil');
+            
+            // Calcular dados para o gráfico de fins de semana
+            const dadosFimDeSemana = dadosGrafico1.filter(d => d.tipoDia === 'Fim de Semana/Feriado');
+            
+            // Obter períodos (meses) únicos para os gráficos
+            const periodos = _.uniqBy(dadosGrafico1, 'mesPeriodo').map(d => d.mesPeriodo);
+            periodos.sort((a, b) => {
+                const [mesA, anoA] = a.split('/');
+                const [mesB, anoB] = b.split('/');
+                const meses = { 'Jan': 1, 'Fev': 2, 'Mar': 3, 'Abr': 4, 'Mai': 5, 'Jun': 6, 'Jul': 7, 'Ago': 8, 'Set': 9, 'Out': 10, 'Nov': 11, 'Dez': 12 };
+                return (parseInt(anoA) * 100 + meses[mesA]) - (parseInt(anoB) * 100 + meses[mesB]);
+            });
+            
+            // Renderizar gráficos
+            renderizarGraficoDiaUtil(dadosDiasUteis);
+            renderizarGraficoFimDeSemana(dadosFimDeSemana);
+            renderizarGraficoComparativo(periodos, dadosDiasUteis, dadosFimDeSemana);
+            renderizarGraficoPorPDV(periodos, dadosGrafico2, 'Dia Útil', 'chart-dia-util-pdv');
+            renderizarGraficoPorPDV(periodos, dadosGrafico2, 'Fim de Semana/Feriado', 'chart-fim-semana-pdv');
+            renderizarGraficoPorApartamento(periodos, dadosFiltrados, 'Dia Útil', 'chart-apt-dia-util');
+            renderizarGraficoPorApartamento(periodos, dadosFiltrados, 'Fim de Semana/Feriado', 'chart-apt-fim-semana');
+        }
+        
+        function prepararDadosGrafico1(dadosFiltrados) {
+            // Agrupar por mês e tipo de dia, somando valores por dia
+            const dadosAgrupados = _.groupBy(dadosFiltrados, d => `${d.mesPeriodo}|${d.tipoDia}`);
+            
+            const dadosGrafico = Object.entries(dadosAgrupados).map(([chave, grupo]) => {
+                const [mesPeriodo, tipoDia] = chave.split('|');
+                
+                // Somar valores por dia de todos os PDVs selecionados
+                const somaValorPorDia = _.sumBy(grupo, 'valorPorDia');
+                
+                return {
+                    mesPeriodo,
+                    tipoDia,
+                    valor: somaValorPorDia,
+                    ordem: grupo[0].ordem
+                };
+            });
+            
+            return _.sortBy(dadosGrafico, 'ordem');
+        }
+        
+        function prepararDadosGrafico2(dadosFiltrados) {
+            // Por PDV, mês e tipo de dia
+            const dadosPorPDVMesTipo = dadosFiltrados.map(d => ({
+                pdv: d.pdv,
+                mesPeriodo: d.mesPeriodo,
+                tipoDia: d.tipoDia,
+                valorPorDia: d.valorPorDia,
+                valorPorApt: d.valorPorApt,
+                ordem: d.ordem
+            }));
+            
+            return _.sortBy(dadosPorPDVMesTipo, ['ordem', 'pdv']);
+        }
+        
+        // Funções para criar/atualizar gráficos específicos
+        function renderizarGraficoDiaUtil(dadosDiasUteis) {
+            renderizarGraficoLinha(
+                'chart-dia-util',
+                dadosDiasUteis.map(d => d.mesPeriodo),
+                [{
+                    label: 'Valor por Dia Útil',
+                    data: dadosDiasUteis.map(d => d.valor),
+                    borderColor: colors[0],
+                    backgroundColor: colors[0],
+                    borderWidth: 2
+                }],
+                'Faturamento por Dia Útil'
+            );
+        }
+        
+        function renderizarGraficoFimDeSemana(dadosFimDeSemana) {
+            renderizarGraficoLinha(
+                'chart-fim-semana',
+                dadosFimDeSemana.map(d => d.mesPeriodo),
+                [{
+                    label: 'Valor por Fim de Semana',
+                    data: dadosFimDeSemana.map(d => d.valor),
+                    borderColor: colors[1],
+                    backgroundColor: colors[1],
+                    borderWidth: 2
+                }],
+                'Faturamento por Fim de Semana/Feriado'
+            );
+        }
+        
+        function renderizarGraficoComparativo(periodos, dadosDiasUteis, dadosFimDeSemana) {
+            const dados = periodos.map(periodo => {
+                const diaUtil = dadosDiasUteis.find(d => d.mesPeriodo === periodo);
+                const fimDeSemana = dadosFimDeSemana.find(d => d.mesPeriodo === periodo);
+                
+                return {
+                    mesPeriodo: periodo,
+                    diaUtil: diaUtil ? diaUtil.valor : 0,
+                    fimDeSemana: fimDeSemana ? fimDeSemana.valor : 0
+                };
+            });
+            
+            renderizarGraficoBarras(
+                'chart-comparativo',
+                dados.map(d => d.mesPeriodo),
+                [
+                    {
+                        label: 'Dia Útil',
+                        data: dados.map(d => d.diaUtil),
+                        backgroundColor: colors[0],
+                    },
+                    {
+                        label: 'Fim de Semana',
+                        data: dados.map(d => d.fimDeSemana),
+                        backgroundColor: colors[1],
+                    }
+                ],
+                'Comparativo: Dia Útil vs. Fim de Semana'
+            );
+        }
+        
+        function renderizarGraficoPorPDV(periodos, dadosGrafico2, tipoDia, chartId) {
+            const datasets = pdvsSelecionados.map((pdv, index) => {
+                const dadosPDV = periodos.map(periodo => {
+                    const dado = dadosGrafico2.find(
+                        d => d.pdv === pdv && d.mesPeriodo === periodo && d.tipoDia === tipoDia
+                    );
+                    return dado ? dado.valorPorDia : 0;
+                });
+                
+                return {
+                    label: pdv,
+                    data: dadosPDV,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length],
+                    borderWidth: 2
+                };
+            });
+            
+            renderizarGraficoLinha(
+                chartId,
+                periodos,
+                datasets,
+                `Faturamento por ${tipoDia} por PDV`
+            );
+        }
+        
+        function renderizarGraficoPorApartamento(periodos, dadosFiltrados, tipoDia, chartId) {
+            const datasets = pdvsSelecionados.map((pdv, index) => {
+                const dadosPorPeriodo = periodos.map(periodo => {
+                    // Encontrar dados do período para este PDV
+                    const dadosPDV = dadosFiltrados.filter(d => 
+                        d.pdv === pdv && 
+                        d.mesPeriodo === periodo && 
+                        d.tipoDia === tipoDia
+                    );
+                    
+                    // Calcular valor por apartamento
+                    if (dadosPDV.length > 0) {
+                        const totalValor = _.sumBy(dadosPDV, 'valorTotal');
+                        const numApts = dadosPDV[0].numApartamentos;
+                        const diasNoTipo = tipoDia === 'Dia Útil' ? dadosPDV[0].diasUteis : dadosPDV[0].diasFDS;
+                        
+                        if (numApts > 0 && diasNoTipo > 0) {
+                            // Valor médio por apartamento por dia
+                            return (totalValor / numApts) / diasNoTipo;
+                        }
+                    }
+                    return 0;
+                });
+                
+                return {
+                    label: pdv,
+                    data: dadosPorPeriodo,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length],
+                    borderWidth: 2
+                };
+            });
+            
+            renderizarGraficoLinha(
+                chartId,
+                periodos,
+                datasets,
+                `Faturamento por Apartamento por ${tipoDia}`
+            );
+        }
+        
+        // Funções auxiliares para criação de gráficos
+        function renderizarGraficoLinha(chartId, labels, datasets, title) {
+            // Destruir gráfico anterior se existir
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+            
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: title
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatarReais(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarReais(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderizarGraficoBarras(chartId, labels, datasets, title) {
+            // Destruir gráfico anterior se existir
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+            
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: title
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatarReais(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarReais(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Funções utilitárias
+        function obterNomeMes(mes) {
+            const meses = [
+                'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+            ];
+            return meses[mes - 1];
+        }
+        
+        function formatarReais(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+    </script>
+</body>
+</html>
